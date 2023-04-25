@@ -1,9 +1,19 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI()
-app.title = "Mi Aplicacion con FastApi"
-app.version = "0.0.3"
+app.title = "Mi aplicación con  FastAPI"
+app.version = "0.0.1"
+
+class Movie(BaseModel):
+    id: Optional[int] = None
+    title: str
+    overview: str
+    year: int
+    rating: float
+    category: str
 
 movies = [
     {
@@ -12,62 +22,59 @@ movies = [
 		"overview": "En un exuberante planeta llamado Pandora viven los Na'vi, seres que ...",
 		"year": "2009",
 		"rating": 7.8,
-		"category": "ficcion"
+		"category": "Acción"
 	},
     {
 		"id": 2,
-		"title": "Avatar2",
+		"title": "Avatar",
 		"overview": "En un exuberante planeta llamado Pandora viven los Na'vi, seres que ...",
-		"year": "2010",
+		"year": "2009",
 		"rating": 7.8,
 		"category": "Acción"
 	}
 ]
 
-@app.get("/", tags=['HOME'])
-def messange():
-    return HTMLResponse('<h1>Hello Wordl!</h1>')
+@app.get('/', tags=['home'])
+def message():
+    return HTMLResponse('<h1>Hello world</h1>')
 
-
-@app.get('/movies', tags=['MOVIES'])
-def getmovies():
+@app.get('/movies', tags=['movies'])
+def get_movies():
     return movies
 
-
-@app.get('/movies/{id}', tags=['MOVIES'])
+@app.get('/movies/{id}', tags=['movies'])
 def get_movie(id: int):
     for item in movies:
         if item["id"] == id:
             return item
     return []
 
-@app.get('/movies/', tags=['MOVIES'])
+@app.get('/movies/', tags=['movies'])
 def get_movies_by_category(category: str, year: int):
-    return [ item for item in movies if item['category'] == category]
+    return [ item for item in movies if item['category'] == category ]
 
-@app.post('/movies', tags=['MOVIES'])
-def create_movie(id: int = Body(), title: str = Body(), overview:str = Body(), year:int = Body(), rating: float = Body(), category: str = Body()):
-    movies.append({
-        "id": id,
-        "title": title,
-        "overview": overview,
-        "year": year,
-        "rating": rating,
-        "category": category
-    })
+@app.post('/movies', tags=['movies'])
+def create_movie(movie: Movie):
+    movies.append(movie)
     return movies
 
-@app.put('/movies/{id}', tags=['MOVIES'])
-def update_movie(id: int, title: str = Body(), overview:str = Body(), year:int = Body(), rating: float = Body(), category: str = Body()):
+@app.put('/movies/{id}', tags=['movies'])
+def update_movie(id: int, movie: Movie):
 	for item in movies:
 		if item["id"] == id:
-			item['title'] = title,
-			item['overview'] = overview,
-			item['year'] = year,
-			item['rating'] = rating,
-			item['category'] = category
+			item['title'] = movie.title
+			item['overview'] = movie.overview
+			item['year'] = movie.year
+			item['rating'] = movie.rating
+			item['category'] = movie.category
 			return movies
 
+@app.delete('/movies/{id}', tags=['movies'])
+def delete_movie(id: int):
+    for item in movies:
+        if item["id"] == id:
+            movies.remove(item)
+            return movies
 
 @app.delete('/movies/{id}', tags=['MOVIES'])
 def delete_movie(id: int):
